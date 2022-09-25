@@ -1,0 +1,17 @@
+#Script RUN
+aws ec2 run-instances --image-id ami-026b57f3c383c2eec --instance-type t2.micro --key-name instancia-ec2-teste --security-group-ids sg-00341bcb927d06032 --subnet-id subnet-0c0c20a30b2247cd8 --region us-east-1 --count 1 --tag-specifications 'ResourceType=instance,Tags=[{Key=grupo,Value=automacao-cli}]'
+
+#Script Filter e Query
+aws ec2 describe-instances --filters "Name=tag:grupo,Values=automacao-cli" --query "Reservations[*].Instances[*].{Instance:InstanceId,ImageId:ImageId,InstanceType:InstanceType,LaunchTime:LaunchTime,Tags:Tags[?Key=='grupo'].Value,State:State.Name}"
+aws ec2 describe-instances --filters Name=instance-state-name,Values=running Name=tag:grupo,Values=automacao-cli --query "Reservations[*].Instances[*].{Instance:InstanceId,ImageId:ImageId,InstanceType:InstanceType,LaunchTime:LaunchTime,Tags:Tags[?Key=='grupo'].Value,State:State.Name}"
+aws ec2 describe-instances --filters "Name=tag:grupo,Values=automacao-cli" --query "Reservations[*].Instances[*].{Instance:InstanceId,ImageId:ImageId,InstanceType:InstanceType,LaunchTime:LaunchTime,State:State.Name}" --output table --output table
+
+#Script Stop Instances
+instance_ids=$(aws ec2 describe-instances --filters "Name=tag:grupo,Values=automacao-cli" --query "Reservations[*].Instances[*].[InstanceId]" | tr -d ] | tr -d [ | tr -d , | tr -d '"' )
+aws ec2 stop-instances --instance-ids $instance_ids --output table
+
+#Script Start Instances
+aws ec2 start-instances --instance-ids $instance_ids --output table
+
+#Script Terminate Instances
+aws ec2 terminate-instances --instance-ids $instance_ids --output table
